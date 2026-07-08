@@ -179,6 +179,59 @@
       color: var(--ink);
     }
 
+    .config-intro {
+      max-width: 860px;
+    }
+
+    .factor-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .factor-row {
+      display: grid;
+      grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.7fr);
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .factor-row h3 {
+      margin-bottom: 4px;
+      color: var(--green);
+    }
+
+    .factor-row p {
+      margin-bottom: 10px;
+    }
+
+    .factor-row ul,
+    .source-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .factor-row li,
+    .source-list li {
+      margin: 6px 0;
+    }
+
+    .source-panel {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f9fbf7;
+    }
+
+    .source-panel h3 {
+      color: var(--ink);
+    }
+
     .tag {
       display: inline-flex;
       align-items: center;
@@ -272,6 +325,10 @@
       .step {
         grid-template-columns: 1fr;
       }
+
+      .factor-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -344,23 +401,154 @@ Energy kWh x grid_emission_factor</code></pre>
     <section>
       <span class="tag">Configuracion</span>
       <h2>Valores que debes ajustar</h2>
+      <p class="config-intro">
+        La precision depende menos del script y mas de los factores que declares.
+        Usa primero datos del proveedor del VPS o del data center. Si no existen,
+        usa fuentes publicas y deja documentado de donde salio cada supuesto.
+      </p>
       <div class="grid">
         <article class="card">
           <strong>W_PER_VCPU</strong>
-          Watts estimados por vCPU al 100% de uso.
+          Potencia estimada de una vCPU cuando trabaja al 100%.
         </article>
         <article class="card">
           <strong>W_PER_GB_RAM</strong>
-          Watts estimados por cada GB de memoria RAM.
+          Potencia estimada por cada GB de memoria RAM asignada o usada.
         </article>
         <article class="card">
           <strong>PUE</strong>
-          Eficiencia energetica del centro de datos.
+          Multiplicador de energia del centro de datos: energia total / energia IT.
         </article>
         <article class="card">
           <strong>KGCO2E_PER_KWH</strong>
-          Factor de emision electrica de la region del data center.
+          Intensidad de carbono de la electricidad donde corre el VPS.
         </article>
+      </div>
+
+      <div class="factor-list">
+        <article class="factor-row">
+          <div>
+            <h3>W_PER_VCPU</h3>
+            <code>15</code>
+          </div>
+          <div>
+            <p>
+              Representa cuantos watts se asignan a una vCPU a carga completa.
+              Si conoces el procesador fisico, toma su TDP del fabricante y
+              dividelo entre el numero de nucleos. En VPS normalmente no se
+              publica el host exacto, asi que conviene usar un rango razonable y
+              explicar el supuesto.
+            </p>
+            <ul>
+              <li>Mas conservador: 10 a 20 W por vCPU.</li>
+              <li>Default practico: 15 W por vCPU.</li>
+              <li>Mejor dato: documentacion tecnica del CPU o del proveedor.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="factor-row">
+          <div>
+            <h3>W_PER_GB_RAM</h3>
+            <code>0.4</code>
+          </div>
+          <div>
+            <p>
+              La memoria consume energia aunque el workload no la este usando
+              intensamente. Por eso, para reportes prudentes, <code>RAM_MODE=allocated</code>
+              suele ser mas defendible que usar solo RAM usada.
+            </p>
+            <ul>
+              <li>Green Algorithms usa una referencia cercana a 0.3725 W/GB.</li>
+              <li>El default <code>0.4</code> redondea ese valor para simplificar.</li>
+              <li>Usa otro valor si tu proveedor publica especificaciones del hardware.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="factor-row">
+          <div>
+            <h3>PUE</h3>
+            <code>1.2</code>
+          </div>
+          <div>
+            <p>
+              PUE incluye refrigeracion, distribucion electrica, UPS, iluminacion
+              y otros consumos de infraestructura. Un PUE de 1.2 significa que por
+              cada 1 kWh usado por equipos IT, se agregan 0.2 kWh de overhead.
+            </p>
+            <ul>
+              <li>Mejor dato: PUE publicado por el proveedor o region del data center.</li>
+              <li>Hiperscalers eficientes pueden estar cerca de 1.1 a 1.3.</li>
+              <li>Si no sabes el proveedor o instalacion, 1.5 a 1.6 es una referencia prudente de industria.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="factor-row">
+          <div>
+            <h3>KGCO2E_PER_KWH</h3>
+            <code>0.05</code>
+          </div>
+          <div>
+            <p>
+              Es el factor mas sensible del calculo. Primero identifica la region
+              real del VPS, no la ubicacion del usuario. Despues busca el factor
+              electrico location-based de esa red o pais y conviertelo a kgCO2e/kWh.
+            </p>
+            <ul>
+              <li>Si la fuente esta en gCO2e/kWh, divide entre 1000.</li>
+              <li>Si la fuente esta en kgCO2e/kWh, usala directamente.</li>
+              <li>Si la fuente esta en tCO2e/MWh, numericamente equivale a kgCO2e/kWh.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="factor-row">
+          <div>
+            <h3>RAM_MODE</h3>
+            <code>allocated</code>
+          </div>
+          <div>
+            <p>
+              <code>allocated</code> usa toda la RAM asignada al VPS. <code>used</code>
+              usa solo la RAM observada en Linux. Para estimaciones publicas o
+              comparables, <code>allocated</code> evita subestimar memoria reservada;
+              para seguimiento operativo interno, <code>used</code> puede mostrar
+              mejor la variacion del workload.
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <div class="source-panel">
+        <h3>Fuentes utiles para elegir factores</h3>
+        <ul class="source-list">
+          <li>
+            <a href="https://www.cloudcarbonfootprint.org/docs/methodology/" target="_blank" rel="noreferrer">Cloud Carbon Footprint methodology</a>:
+            referencia abierta para estimar energia y CO2e en servicios cloud con uso, PUE y factores de red.
+          </li>
+          <li>
+            <a href="https://calculator.green-algorithms.org/" target="_blank" rel="noreferrer">Green Algorithms</a>:
+            metodologia de computo que usa tiempo, nucleos, memoria, PUE e intensidad de carbono.
+          </li>
+          <li>
+            <a href="https://if.greensoftware.foundation/pipelines/cpu-to-carbon/" target="_blank" rel="noreferrer">Green Software Foundation Impact Framework</a>:
+            guia para transformar utilizacion de CPU en watts, energia y carbono.
+          </li>
+          <li>
+            <a href="https://datacenter.uptimeinstitute.com/rs/711-RIA-145/images/2025.Annual.Survey.Report.pdf?version=0" target="_blank" rel="noreferrer">Uptime Institute Global Data Center Survey 2025</a>:
+            referencia de industria para PUE promedio cuando no tienes el dato del proveedor.
+          </li>
+          <li>
+            <a href="https://www.epa.gov/egrid" target="_blank" rel="noreferrer">EPA eGRID</a>:
+            factores electricos por subregion en Estados Unidos.
+          </li>
+          <li>
+            <a href="https://www.iea.org/data-and-statistics/data-product/emissions-factors-2025" target="_blank" rel="noreferrer">IEA Emissions Factors</a>:
+            factores de emisiones electricas por pais para comparaciones internacionales.
+          </li>
+        </ul>
       </div>
     </section>
 
