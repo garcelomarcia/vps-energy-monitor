@@ -44,7 +44,7 @@ Where:
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR-USER/vps-energy-monitor.git
+git clone https://github.com/garcelomarcia/vps-energy-monitor.git
 cd vps-energy-monitor
 sudo ./install.sh
 ```
