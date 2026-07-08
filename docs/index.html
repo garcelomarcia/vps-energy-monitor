@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VPS Energy Monitor</title>
+  <style>
+    :root {
+      --bg: #f6f7f2;
+      --ink: #16211c;
+      --muted: #5d6b63;
+      --line: #d8ded6;
+      --panel: #ffffff;
+      --panel-soft: #eef3ed;
+      --green: #2f7d4f;
+      --blue: #1d5f86;
+      --amber: #9a6417;
+      --terminal: #111815;
+      --terminal-text: #dff6e7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--green);
+    }
+
+    header {
+      min-height: 74vh;
+      display: grid;
+      align-content: center;
+      gap: 30px;
+      padding: 56px 24px 36px;
+      background: #e8efe8;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-inner,
+    main {
+      width: min(1120px, calc(100vw - 48px));
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      margin: 0 0 12px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      font-size: 4rem;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .terminal {
+      width: min(880px, 100%);
+      margin: 4px auto 0;
+      overflow: hidden;
+      border: 1px solid #203027;
+      border-radius: 8px;
+      background: var(--terminal);
+      box-shadow: 0 18px 48px rgba(17, 24, 21, 0.22);
+    }
+
+    .terminal-bar {
+      display: flex;
+      gap: 7px;
+      padding: 12px 14px;
+      background: #18221e;
+      border-bottom: 1px solid #29382f;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #b7c3bb;
+    }
+
+    .dot:nth-child(1) {
+      background: #e16d5f;
+    }
+
+    .dot:nth-child(2) {
+      background: #e4b750;
+    }
+
+    .dot:nth-child(3) {
+      background: #58b777;
+    }
+
+    pre {
+      margin: 0;
+      overflow-x: auto;
+      padding: 20px;
+      color: var(--terminal-text);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    code,
+    pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    main {
+      padding: 36px 0 72px;
+    }
+
+    section {
+      padding: 34px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child {
+      border-bottom: 0;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 2rem;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    p {
+      max-width: 800px;
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      min-height: 146px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      color: var(--green);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .formula {
+      border: 1px solid #223129;
+      border-radius: 8px;
+      background: var(--terminal);
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .step-number {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      font-weight: 800;
+    }
+
+    .step pre {
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 14px;
+      font-size: 0.9rem;
+    }
+
+    .callout {
+      padding: 18px;
+      border-left: 5px solid var(--amber);
+      background: #fff8ed;
+      border-radius: 8px;
+    }
+
+    footer {
+      padding: 28px 24px 46px;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 720px) {
+      header {
+        min-height: auto;
+        padding-top: 42px;
+      }
+
+      .hero-inner,
+      main {
+        width: min(100% - 32px, 1120px);
+      }
+
+      h1 {
+        font-size: 2.7rem;
+      }
+
+      .lead {
+        font-size: 1rem;
+      }
+
+      pre {
+        font-size: 0.84rem;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero-inner">
+      <p class="eyebrow">Open-source VPS sustainability tool</p>
+      <h1>VPS Energy Monitor</h1>
+      <p class="lead">
+        Estima el consumo energetico y las emisiones CO2e de un VPS Ubuntu con
+        metricas locales de CPU, RAM y una metodologia transparente.
+      </p>
+    </div>
+
+    <figure class="terminal" aria-label="VPS Energy Monitor terminal report">
+      <div class="terminal-bar" aria-hidden="true">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <pre><code>$ vps-energy report --period day
+Report: last day
+samples:        1440
+observed_time:  24.00 h
+avg_cpu_usage:  18.4%
+avg_power:      11.26 W
+energy:         0.270240 kWh
+emissions:      0.013512 kgCO2e</code></pre>
+    </figure>
+  </header>
+
+  <main>
+    <section>
+      <span class="tag">Que hace</span>
+      <h2>Un recolector ligero para VPS Linux</h2>
+      <div class="grid">
+        <article class="card">
+          <strong>Monitorea CPU y RAM</strong>
+          Guarda muestras locales en SQLite usando datos de <code>/proc</code>.
+        </article>
+        <article class="card">
+          <strong>Corre en background</strong>
+          Incluye una unidad <code>systemd</code> para iniciar con Ubuntu.
+        </article>
+        <article class="card">
+          <strong>Genera reportes</strong>
+          Entrega estimaciones por dia, semana o mes desde la terminal.
+        </article>
+        <article class="card">
+          <strong>Calcula CO2e</strong>
+          Convierte energia estimada con un factor electrico regional.
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <span class="tag">Formula</span>
+      <h2>Modelo de calculo</h2>
+      <p>Para un VPS sin GPU, la estimacion usa potencia de CPU, RAM y PUE.</p>
+      <div class="formula">
+        <pre><code>Energy kWh =
+hours x ((vCPU x W_per_vCPU x CPU_usage)
++ (RAM_GB x W_per_GB_RAM)) / 1000 x PUE
+
+CO2e =
+Energy kWh x grid_emission_factor</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <span class="tag">Configuracion</span>
+      <h2>Valores que debes ajustar</h2>
+      <div class="grid">
+        <article class="card">
+          <strong>W_PER_VCPU</strong>
+          Watts estimados por vCPU al 100% de uso.
+        </article>
+        <article class="card">
+          <strong>W_PER_GB_RAM</strong>
+          Watts estimados por cada GB de memoria RAM.
+        </article>
+        <article class="card">
+          <strong>PUE</strong>
+          Eficiencia energetica del centro de datos.
+        </article>
+        <article class="card">
+          <strong>KGCO2E_PER_KWH</strong>
+          Factor de emision electrica de la region del data center.
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <span class="tag">Instalacion</span>
+      <h2>Uso rapido</h2>
+      <div class="steps">
+        <article class="step">
+          <div class="step-number">1</div>
+          <div>
+            <h3>Clona el repositorio</h3>
+            <pre><code>git clone https://github.com/YOUR-USER/vps-energy-monitor.git
+cd vps-energy-monitor</code></pre>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-number">2</div>
+          <div>
+            <h3>Ejecuta el instalador</h3>
+            <pre><code>sudo ./install.sh</code></pre>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-number">3</div>
+          <div>
+            <h3>Edita la configuracion</h3>
+            <pre><code>sudo nano /etc/vps-energy.conf</code></pre>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-number">4</div>
+          <div>
+            <h3>Consulta reportes</h3>
+            <pre><code>vps-energy status
+vps-energy report --period day
+vps-energy report --period week
+vps-energy report --period month</code></pre>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <span class="tag">Limitacion</span>
+      <h2>Estimacion, no medidor fisico</h2>
+      <div class="callout">
+        <p>
+          En un VPS, el hardware real se comparte con otros usuarios. Por eso el
+          resultado debe entenderse como una estimacion basada en recursos
+          virtuales y uso observado.
+        </p>
+        <p>
+          Para reportes formales, usa datos oficiales del proveedor cloud cuando
+          esten disponibles.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built for digital sustainability, transparency, and better infrastructure awareness.
+  </footer>
+</body>
+</html>

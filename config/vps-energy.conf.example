@@ -1,0 +1,26 @@
+# VPS Energy Monitor configuration
+
+# Sampling interval in seconds.
+SAMPLE_INTERVAL=60
+
+# Estimated watts per vCPU at 100% usage.
+W_PER_VCPU=15
+
+# Estimated watts per GB of RAM.
+W_PER_GB_RAM=0.4
+
+# Power Usage Effectiveness of the data center.
+# Example: 1.2 means 20% additional energy for cooling and infrastructure.
+PUE=1.2
+
+# Electricity grid emission factor.
+# Unit: kgCO2e per kWh.
+KGCO2E_PER_KWH=0.05
+
+# RAM calculation mode:
+# allocated = use total assigned RAM
+# used = use actual RAM used by the VPS
+RAM_MODE=allocated
+
+# SQLite database path.
+DB_PATH=/var/lib/vps-energy/vps-energy.db

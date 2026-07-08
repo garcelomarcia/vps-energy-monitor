@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+*.sh text eol=lf
+bin/vps-energy text eol=lf
+systemd/*.service text eol=lf
+config/*.example text eol=lf

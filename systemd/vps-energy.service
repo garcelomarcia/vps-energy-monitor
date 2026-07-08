@@ -1,0 +1,17 @@
+[Unit]
+Description=VPS Energy and CO2e Collector
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/vps-energy collect
+Restart=always
+RestartSec=5
+User=root
+WorkingDirectory=/var/lib/vps-energy
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

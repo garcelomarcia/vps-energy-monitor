@@ -1,0 +1,484 @@
+#!/usr/bin/env python3
+"""Estimate VPS energy use and CO2e emissions from local Linux metrics."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import sqlite3
+import sys
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Iterable
+
+
+APP_NAME = "vps-energy"
+DEFAULT_CONFIG_PATH = "/etc/vps-energy.conf"
+DEFAULT_DB_PATH = "/var/lib/vps-energy/vps-energy.db"
+
+DEFAULTS = {
+    "SAMPLE_INTERVAL": "60",
+    "W_PER_VCPU": "15",
+    "W_PER_GB_RAM": "0.4",
+    "PUE": "1.2",
+    "KGCO2E_PER_KWH": "0.05",
+    "RAM_MODE": "allocated",
+    "DB_PATH": DEFAULT_DB_PATH,
+}
+
+PERIODS = {
+    "day": timedelta(days=1),
+    "week": timedelta(days=7),
+    "month": timedelta(days=30),
+}
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS samples (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  collected_at TEXT NOT NULL,
+  cpu_usage REAL NOT NULL,
+  vcpu_count INTEGER NOT NULL,
+  ram_total_gb REAL NOT NULL,
+  ram_used_gb REAL NOT NULL,
+  ram_metric_gb REAL NOT NULL,
+  cpu_watts REAL NOT NULL,
+  ram_watts REAL NOT NULL,
+  watts REAL NOT NULL,
+  w_per_vcpu REAL NOT NULL,
+  w_per_gb_ram REAL NOT NULL,
+  pue REAL NOT NULL,
+  kgco2e_per_kwh REAL NOT NULL,
+  ram_mode TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_samples_collected_at
+ON samples (collected_at);
+"""
+
+
+class ConfigError(ValueError):
+    """Raised when the configuration file contains invalid values."""
+
+
+@dataclass(frozen=True)
+class Config:
+    sample_interval: int
+    w_per_vcpu: float
+    w_per_gb_ram: float
+    pue: float
+    kgco2e_per_kwh: float
+    ram_mode: str
+    db_path: Path
+    config_path: Path
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(microsecond=0)
+
+
+def iso_utc(value: datetime) -> str:
+    return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def parse_utc(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
+
+
+def strip_quotes(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
+
+
+def read_config_file(path: Path) -> dict[str, str]:
+    values = dict(DEFAULTS)
+    if not path.exists():
+        return values
+
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            raise ConfigError(f"{path}:{line_number}: expected KEY=VALUE")
+        key, value = line.split("=", 1)
+        values[key.strip().upper()] = strip_quotes(value)
+    return values
+
+
+def parse_int(values: dict[str, str], key: str, minimum: int | None = None) -> int:
+    try:
+        parsed = int(values[key])
+    except (KeyError, ValueError) as exc:
+        raise ConfigError(f"{key} must be an integer") from exc
+    if minimum is not None and parsed < minimum:
+        raise ConfigError(f"{key} must be at least {minimum}")
+    return parsed
+
+
+def parse_float(values: dict[str, str], key: str, minimum: float | None = None) -> float:
+    try:
+        parsed = float(values[key])
+    except (KeyError, ValueError) as exc:
+        raise ConfigError(f"{key} must be a number") from exc
+    if minimum is not None and parsed < minimum:
+        raise ConfigError(f"{key} must be at least {minimum}")
+    return parsed
+
+
+def load_config(config_path: str, db_override: str | None) -> Config:
+    path = Path(config_path)
+    values = read_config_file(path)
+    ram_mode = values["RAM_MODE"].lower()
+    if ram_mode not in {"allocated", "used"}:
+        raise ConfigError("RAM_MODE must be either 'allocated' or 'used'")
+
+    db_path = Path(db_override or os.environ.get("VPS_ENERGY_DB") or values["DB_PATH"])
+
+    return Config(
+        sample_interval=parse_int(values, "SAMPLE_INTERVAL", minimum=1),
+        w_per_vcpu=parse_float(values, "W_PER_VCPU", minimum=0),
+        w_per_gb_ram=parse_float(values, "W_PER_GB_RAM", minimum=0),
+        pue=parse_float(values, "PUE", minimum=1),
+        kgco2e_per_kwh=parse_float(values, "KGCO2E_PER_KWH", minimum=0),
+        ram_mode=ram_mode,
+        db_path=db_path,
+        config_path=path,
+    )
+
+
+def ensure_linux_proc() -> None:
+    if not Path("/proc/stat").exists() or not Path("/proc/meminfo").exists():
+        raise RuntimeError(f"{APP_NAME} requires Linux /proc metrics")
+
+
+def read_cpu_times() -> tuple[int, int]:
+    ensure_linux_proc()
+    first_line = Path("/proc/stat").read_text(encoding="utf-8").splitlines()[0]
+    parts = first_line.split()
+    if parts[0] != "cpu":
+        raise RuntimeError("could not read aggregate CPU counters from /proc/stat")
+    values = [int(value) for value in parts[1:]]
+    idle = values[3] + (values[4] if len(values) > 4 else 0)
+    total = sum(values)
+    return total, idle
+
+
+def read_cpu_usage(sample_window: float) -> float:
+    start_total, start_idle = read_cpu_times()
+    time.sleep(max(0.1, sample_window))
+    end_total, end_idle = read_cpu_times()
+
+    total_delta = end_total - start_total
+    idle_delta = end_idle - start_idle
+    if total_delta <= 0:
+        return 0.0
+    usage = 1.0 - (idle_delta / total_delta)
+    return max(0.0, min(1.0, usage))
+
+
+def read_memory_gb() -> tuple[float, float]:
+    ensure_linux_proc()
+    values: dict[str, int] = {}
+    for line in Path("/proc/meminfo").read_text(encoding="utf-8").splitlines():
+        key, raw_value = line.split(":", 1)
+        parts = raw_value.strip().split()
+        if parts:
+            values[key] = int(parts[0])
+
+    total_kb = values.get("MemTotal")
+    if not total_kb:
+        raise RuntimeError("could not read MemTotal from /proc/meminfo")
+
+    available_kb = values.get("MemAvailable")
+    if available_kb is None:
+        available_kb = (
+            values.get("MemFree", 0)
+            + values.get("Buffers", 0)
+            + values.get("Cached", 0)
+            + values.get("SReclaimable", 0)
+            - values.get("Shmem", 0)
+        )
+
+    total_gb = total_kb / 1024 / 1024
+    used_gb = max(0.0, (total_kb - available_kb) / 1024 / 1024)
+    return total_gb, used_gb
+
+
+def collect_sample(config: Config, sample_window: float) -> dict[str, object]:
+    cpu_usage = read_cpu_usage(sample_window)
+    ram_total_gb, ram_used_gb = read_memory_gb()
+    vcpu_count = os.cpu_count() or 1
+    ram_metric_gb = ram_total_gb if config.ram_mode == "allocated" else ram_used_gb
+
+    cpu_watts = vcpu_count * config.w_per_vcpu * cpu_usage
+    ram_watts = ram_metric_gb * config.w_per_gb_ram
+    watts = (cpu_watts + ram_watts) * config.pue
+
+    return {
+        "collected_at": iso_utc(utc_now()),
+        "cpu_usage": cpu_usage,
+        "vcpu_count": vcpu_count,
+        "ram_total_gb": ram_total_gb,
+        "ram_used_gb": ram_used_gb,
+        "ram_metric_gb": ram_metric_gb,
+        "cpu_watts": cpu_watts,
+        "ram_watts": ram_watts,
+        "watts": watts,
+        "w_per_vcpu": config.w_per_vcpu,
+        "w_per_gb_ram": config.w_per_gb_ram,
+        "pue": config.pue,
+        "kgco2e_per_kwh": config.kgco2e_per_kwh,
+        "ram_mode": config.ram_mode,
+    }
+
+
+def connect_db(config: Config, create: bool) -> sqlite3.Connection | None:
+    if not create and not config.db_path.exists():
+        return None
+
+    if create:
+        config.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    connection = sqlite3.connect(config.db_path)
+    connection.row_factory = sqlite3.Row
+    if create:
+        connection.executescript(SCHEMA)
+        connection.commit()
+    return connection
+
+
+def save_sample(connection: sqlite3.Connection, sample: dict[str, object]) -> None:
+    columns = ", ".join(sample.keys())
+    placeholders = ", ".join("?" for _ in sample)
+    connection.execute(
+        f"INSERT INTO samples ({columns}) VALUES ({placeholders})",
+        tuple(sample.values()),
+    )
+    connection.commit()
+
+
+def latest_sample(connection: sqlite3.Connection) -> sqlite3.Row | None:
+    return connection.execute(
+        "SELECT * FROM samples ORDER BY collected_at DESC, id DESC LIMIT 1"
+    ).fetchone()
+
+
+def format_percent(value: float) -> str:
+    return f"{value * 100:.1f}%"
+
+
+def format_duration(seconds: float) -> str:
+    seconds = max(0, int(seconds))
+    days, remainder = divmod(seconds, 86400)
+    hours, remainder = divmod(remainder, 3600)
+    minutes, _ = divmod(remainder, 60)
+    parts: list[str] = []
+    if days:
+        parts.append(f"{days}d")
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes or not parts:
+        parts.append(f"{minutes}m")
+    return " ".join(parts)
+
+
+def print_sample(sample: sqlite3.Row | dict[str, object], prefix: str = "") -> None:
+    print(f"{prefix}collected_at: {sample['collected_at']}")
+    print(f"{prefix}cpu_usage:   {format_percent(float(sample['cpu_usage']))}")
+    print(f"{prefix}vcpus:       {sample['vcpu_count']}")
+    print(f"{prefix}ram_total:   {float(sample['ram_total_gb']):.2f} GB")
+    print(f"{prefix}ram_used:    {float(sample['ram_used_gb']):.2f} GB")
+    print(f"{prefix}ram_mode:    {sample['ram_mode']}")
+    print(f"{prefix}watts:       {float(sample['watts']):.2f} W")
+
+
+def command_collect(args: argparse.Namespace, config: Config) -> int:
+    connection = connect_db(config, create=True)
+    assert connection is not None
+
+    print(f"Collecting VPS energy samples into {config.db_path}", flush=True)
+    try:
+        while True:
+            started = time.monotonic()
+            sample = collect_sample(config, args.sample_window)
+            save_sample(connection, sample)
+            if args.once:
+                print_sample(sample)
+                return 0
+            elapsed = time.monotonic() - started
+            time.sleep(max(0.0, config.sample_interval - elapsed))
+    except KeyboardInterrupt:
+        print("\nCollector stopped.")
+        return 0
+
+
+def command_status(config: Config) -> int:
+    connection = connect_db(config, create=False)
+    if connection is None:
+        print(f"No database found at {config.db_path}")
+        print("Start the collector with: sudo systemctl start vps-energy")
+        return 1
+
+    sample = latest_sample(connection)
+    if sample is None:
+        print(f"No samples found in {config.db_path}")
+        return 1
+
+    age = utc_now() - parse_utc(sample["collected_at"])
+    print("VPS Energy Monitor status")
+    print(f"database:     {config.db_path}")
+    print(f"sample_age:   {format_duration(age.total_seconds())}")
+    print_sample(sample)
+    return 0
+
+
+def average(rows: Iterable[sqlite3.Row], key: str) -> float:
+    values = [float(row[key]) for row in rows]
+    if not values:
+        return 0.0
+    return sum(values) / len(values)
+
+
+def rows_for_period(connection: sqlite3.Connection, period: str) -> list[sqlite3.Row]:
+    since = iso_utc(utc_now() - PERIODS[period])
+    return list(
+        connection.execute(
+            "SELECT * FROM samples WHERE collected_at >= ? ORDER BY collected_at ASC, id ASC",
+            (since,),
+        )
+    )
+
+
+def summarize_period(rows: list[sqlite3.Row], period: str, config: Config) -> dict[str, object]:
+    first = parse_utc(rows[0]["collected_at"])
+    last = parse_utc(rows[-1]["collected_at"])
+    observed_seconds = (last - first).total_seconds() + config.sample_interval
+    observed_seconds = min(observed_seconds, PERIODS[period].total_seconds())
+    observed_hours = max(observed_seconds, config.sample_interval) / 3600
+
+    avg_watts = average(rows, "watts")
+    energy_kwh = avg_watts * observed_hours / 1000
+    kgco2e_per_kwh = average(rows, "kgco2e_per_kwh")
+    emissions_kg = energy_kwh * kgco2e_per_kwh
+
+    return {
+        "period": period,
+        "sample_count": len(rows),
+        "from": rows[0]["collected_at"],
+        "to": rows[-1]["collected_at"],
+        "observed_hours": observed_hours,
+        "avg_cpu_usage": average(rows, "cpu_usage"),
+        "avg_ram_used_gb": average(rows, "ram_used_gb"),
+        "avg_ram_metric_gb": average(rows, "ram_metric_gb"),
+        "avg_watts": avg_watts,
+        "energy_kwh": energy_kwh,
+        "kgco2e_per_kwh": kgco2e_per_kwh,
+        "emissions_kg": emissions_kg,
+    }
+
+
+def print_report(summary: dict[str, object]) -> None:
+    print(f"Report: last {summary['period']}")
+    print(f"samples:        {summary['sample_count']}")
+    print(f"from:           {summary['from']}")
+    print(f"to:             {summary['to']}")
+    print(f"observed_time:  {float(summary['observed_hours']):.2f} h")
+    print(f"avg_cpu_usage:  {format_percent(float(summary['avg_cpu_usage']))}")
+    print(f"avg_ram_used:   {float(summary['avg_ram_used_gb']):.2f} GB")
+    print(f"avg_ram_metric: {float(summary['avg_ram_metric_gb']):.2f} GB")
+    print(f"avg_power:      {float(summary['avg_watts']):.2f} W")
+    print(f"energy:         {float(summary['energy_kwh']):.6f} kWh")
+    print(f"factor:         {float(summary['kgco2e_per_kwh']):.6f} kgCO2e/kWh")
+    print(f"emissions:      {float(summary['emissions_kg']):.6f} kgCO2e")
+
+
+def command_report(args: argparse.Namespace, config: Config) -> int:
+    connection = connect_db(config, create=False)
+    if connection is None:
+        print(f"No database found at {config.db_path}")
+        print("Start the collector with: sudo systemctl start vps-energy")
+        return 1
+
+    periods = PERIODS.keys() if args.period == "all" else [args.period]
+    had_rows = False
+    for index, period in enumerate(periods):
+        rows = rows_for_period(connection, period)
+        if index:
+            print()
+        if not rows:
+            print(f"Report: last {period}")
+            print("No samples found for this period.")
+            continue
+        had_rows = True
+        print_report(summarize_period(rows, period, config))
+
+    return 0 if had_rows else 1
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog=APP_NAME,
+        description="Estimate VPS energy consumption and CO2e emissions from CPU/RAM metrics.",
+    )
+    parser.add_argument(
+        "--config",
+        default=os.environ.get("VPS_ENERGY_CONFIG", DEFAULT_CONFIG_PATH),
+        help=f"configuration file path (default: {DEFAULT_CONFIG_PATH})",
+    )
+    parser.add_argument(
+        "--db",
+        default=None,
+        help="SQLite database path (overrides DB_PATH and VPS_ENERGY_DB)",
+    )
+    parser.add_argument("--version", action="version", version="vps-energy 0.1.0")
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    collect = subparsers.add_parser("collect", help="collect metrics continuously")
+    collect.add_argument("--once", action="store_true", help="collect one sample and exit")
+    collect.add_argument(
+        "--sample-window",
+        type=float,
+        default=1.0,
+        help="seconds used to measure CPU utilization (default: 1.0)",
+    )
+
+    subparsers.add_parser("status", help="show the latest collected sample")
+
+    report = subparsers.add_parser("report", help="generate energy and CO2e reports")
+    report.add_argument(
+        "--period",
+        choices=["day", "week", "month", "all"],
+        default="all",
+        help="report period (default: all)",
+    )
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    try:
+        config = load_config(args.config, args.db)
+        if args.command == "collect":
+            return command_collect(args, config)
+        if args.command == "status":
+            return command_status(config)
+        if args.command == "report":
+            return command_report(args, config)
+    except (ConfigError, OSError, RuntimeError, sqlite3.Error) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    parser.error(f"unknown command: {args.command}")
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
