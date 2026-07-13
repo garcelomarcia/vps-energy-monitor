@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ficha técnica - VPS Energy Monitor</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+
+    :root {
+      --ink: #12231c;
+      --muted: #52635b;
+      --paper: #fbfcf7;
+      --panel: #ffffff;
+      --line: #d8e2d6;
+      --forest: #173b2b;
+      --green: #38a169;
+      --lime: #b9f26d;
+      --cyan: #8ee6ff;
+      --amber: #f4b84a;
+      --coral: #ef6f61;
+      --charcoal: #0d1713;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      background: #d9ded6;
+      color: var(--ink);
+      font-family: Aptos, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      line-height: 1.35;
+    }
+
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      position: relative;
+      width: 8.5in;
+      height: 11in;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--paper);
+      page-break-after: always;
+      break-after: page;
+    }
+
+    .page:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(56, 161, 105, 0.1), transparent 34%),
+        linear-gradient(180deg, transparent 0, transparent 92%, rgba(23, 59, 43, 0.08));
+    }
+
+    .top-band {
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1.18in;
+      background:
+        linear-gradient(90deg, var(--forest), #1e6b48 52%, #174e61);
+    }
+
+    .accent-stripe {
+      position: absolute;
+      top: 1.18in;
+      left: 0;
+      right: 0;
+      height: 0.12in;
+      background: linear-gradient(90deg, var(--lime), var(--cyan), var(--amber), var(--coral));
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 0.48in 0.54in;
+    }
+
+    .cover .content {
+      padding-top: 0.44in;
+    }
+
+    .kicker {
+      margin: 0 0 0.12in;
+      color: var(--lime);
+      font-size: 10pt;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 5.6in;
+      color: #ffffff;
+      font-size: 40pt;
+      line-height: 0.94;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 5.7in;
+      margin-top: 0.28in;
+      color: #234637;
+      font-size: 13pt;
+      font-weight: 650;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.78fr;
+      gap: 0.18in;
+      margin-top: 0.54in;
+    }
+
+    .dark-panel {
+      min-height: 2.18in;
+      padding: 0.23in;
+      border-radius: 0.12in;
+      color: #f7fff9;
+      background: var(--charcoal);
+      box-shadow: 0 0.16in 0.32in rgba(18, 35, 28, 0.18);
+    }
+
+    .dark-panel h2 {
+      color: var(--cyan);
+      font-size: 18pt;
+      line-height: 1.05;
+    }
+
+    .dark-panel p {
+      margin-top: 0.12in;
+      color: #cfe6d8;
+      font-size: 10.2pt;
+    }
+
+    .terminal {
+      margin-top: 0.16in;
+      padding: 0.16in;
+      border: 1px solid rgba(142, 230, 255, 0.25);
+      border-radius: 0.08in;
+      background: #07110d;
+      color: #dff6e7;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 8.6pt;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .metric-card {
+      padding: 0.18in;
+      border: 1px solid var(--line);
+      border-radius: 0.12in;
+      background: var(--panel);
+      box-shadow: 0 0.1in 0.24in rgba(18, 35, 28, 0.08);
+    }
+
+    .metric-card + .metric-card {
+      margin-top: 0.14in;
+    }
+
+    .metric-card .label {
+      display: block;
+      color: var(--muted);
+      font-size: 8.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric-card .value {
+      display: block;
+      margin-top: 0.04in;
+      color: var(--forest);
+      font-size: 23pt;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .metric-card p {
+      margin-top: 0.08in;
+      color: var(--muted);
+      font-size: 9.2pt;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.09in;
+      margin-bottom: 0.14in;
+    }
+
+    .section-title span {
+      width: 0.28in;
+      height: 0.28in;
+      border-radius: 50%;
+      background: var(--green);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-size: 10pt;
+      font-weight: 900;
+    }
+
+    .section-title h2 {
+      color: var(--forest);
+      font-size: 18pt;
+      letter-spacing: 0;
+    }
+
+    .three-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.12in;
+      margin-top: 0.24in;
+    }
+
+    .info-box {
+      min-height: 1.4in;
+      padding: 0.16in;
+      border: 1px solid var(--line);
+      border-top: 0.06in solid var(--green);
+      border-radius: 0.1in;
+      background: #ffffff;
+    }
+
+    .info-box:nth-child(2) {
+      border-top-color: var(--cyan);
+    }
+
+    .info-box:nth-child(3) {
+      border-top-color: var(--amber);
+    }
+
+    .info-box h3 {
+      color: var(--ink);
+      font-size: 11.5pt;
+      line-height: 1.1;
+    }
+
+    .info-box p {
+      margin-top: 0.08in;
+      color: var(--muted);
+      font-size: 8.8pt;
+    }
+
+    .formula-panel {
+      margin-top: 0.22in;
+      padding: 0.2in;
+      border-radius: 0.12in;
+      background: #eaf6ee;
+      border: 1px solid #cce4d1;
+    }
+
+    .formula-panel h3 {
+      color: var(--forest);
+      font-size: 12pt;
+    }
+
+    .formula {
+      margin-top: 0.1in;
+      padding: 0.14in;
+      border-radius: 0.08in;
+      background: var(--charcoal);
+      color: #eaffef;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 9.2pt;
+      line-height: 1.42;
+      white-space: pre-wrap;
+    }
+
+    .footer {
+      position: absolute;
+      left: 0.54in;
+      right: 0.54in;
+      bottom: 0.3in;
+      display: flex;
+      justify-content: space-between;
+      color: #728178;
+      font-size: 8.5pt;
+    }
+
+    .page-number {
+      font-weight: 900;
+      color: var(--forest);
+    }
+
+    .page-2 .content {
+      padding-top: 1.52in;
+    }
+
+    .compact-grid {
+      display: grid;
+      grid-template-columns: 1.06fr 0.94fr;
+      gap: 0.18in;
+    }
+
+    .install-panel,
+    .config-panel,
+    .source-panel,
+    .qr-panel {
+      padding: 0.18in;
+      border: 1px solid var(--line);
+      border-radius: 0.12in;
+      background: #ffffff;
+      box-shadow: 0 0.08in 0.18in rgba(18, 35, 28, 0.07);
+    }
+
+    .install-panel h2,
+    .config-panel h2,
+    .source-panel h2,
+    .qr-panel h2 {
+      color: var(--forest);
+      font-size: 15pt;
+      line-height: 1.1;
+    }
+
+    .steps {
+      margin-top: 0.12in;
+      display: grid;
+      gap: 0.08in;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 0.27in 1fr;
+      gap: 0.08in;
+      align-items: start;
+      padding: 0.1in;
+      border-radius: 0.08in;
+      background: #f2f7f0;
+      font-size: 8.7pt;
+    }
+
+    .step b {
+      display: grid;
+      place-items: center;
+      width: 0.24in;
+      height: 0.24in;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      font-size: 8.4pt;
+    }
+
+    .code {
+      margin-top: 0.05in;
+      padding: 0.09in;
+      border-radius: 0.06in;
+      background: var(--charcoal);
+      color: #e8fff0;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 7.8pt;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .config-table {
+      width: 100%;
+      margin-top: 0.12in;
+      border-collapse: collapse;
+      font-size: 8.4pt;
+    }
+
+    .config-table th,
+    .config-table td {
+      padding: 0.07in;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .config-table th {
+      color: var(--forest);
+      font-size: 8pt;
+      text-transform: uppercase;
+    }
+
+    .config-table code {
+      color: var(--forest);
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-weight: 800;
+    }
+
+    .interpretation {
+      margin-top: 0.18in;
+      padding: 0.18in;
+      border-radius: 0.12in;
+      background: #fff7e7;
+      border: 1px solid #f0d39c;
+    }
+
+    .interpretation h2 {
+      color: #7c4d0c;
+      font-size: 15pt;
+    }
+
+    .interpretation p {
+      margin-top: 0.09in;
+      color: #59452b;
+      font-size: 9.2pt;
+    }
+
+    .source-panel {
+      margin-top: 0.18in;
+    }
+
+    .source-panel ul {
+      margin: 0.1in 0 0;
+      padding-left: 0.18in;
+      color: var(--muted);
+      font-size: 8.3pt;
+    }
+
+    .source-panel li {
+      margin: 0.045in 0;
+    }
+
+    .qr-panel {
+      margin-top: 0.18in;
+      display: grid;
+      grid-template-columns: 1.35in 1fr;
+      gap: 0.16in;
+      align-items: center;
+      background: var(--charcoal);
+      color: #ecfff2;
+      border: 0;
+    }
+
+    .qr-panel img {
+      width: 1.28in;
+      height: 1.28in;
+      padding: 0.08in;
+      background: white;
+      border-radius: 0.08in;
+    }
+
+    .qr-panel h2 {
+      color: var(--cyan);
+    }
+
+    .qr-panel p {
+      margin-top: 0.08in;
+      color: #cfe6d8;
+      font-size: 8.8pt;
+    }
+
+    .url {
+      margin-top: 0.08in;
+      color: var(--lime);
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 7.4pt;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <div class="top-band"></div>
+    <div class="accent-stripe"></div>
+    <div class="content">
+      <p class="kicker">Ficha técnica para impresión</p>
+      <h1>VPS Energy Monitor</h1>
+      <p class="subtitle">
+        Herramienta open-source para estimar consumo energético y emisiones CO2e
+        de un VPS Ubuntu usando métricas locales de CPU y RAM.
+      </p>
+
+      <div class="hero-grid">
+        <div class="dark-panel">
+          <h2>Qué mide</h2>
+          <p>
+            Mide uso de CPU, cantidad de vCPU, memoria RAM total o usada, fecha
+            de cada muestra y duración observada. Con esos datos estima potencia,
+            energía acumulada y emisiones asociadas.
+          </p>
+          <div class="terminal">$ vps-energy status
+cpu_usage:   18.0%
+vcpus:       2
+ram_total:   2.00 GB
+watts:       10.90 W</div>
+        </div>
+
+        <div>
+          <div class="metric-card">
+            <span class="label">Salida principal</span>
+            <span class="value">kWh</span>
+            <p>Energía estimada para el periodo consultado.</p>
+          </div>
+          <div class="metric-card">
+            <span class="label">Impacto asociado</span>
+            <span class="value">kgCO2e</span>
+            <p>Emisiones calculadas con el factor eléctrico regional.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="three-grid">
+        <article class="info-box">
+          <h3>1. Observa el VPS</h3>
+          <p>
+            Lee métricas locales desde Linux, principalmente <strong>/proc/stat</strong>
+            para CPU y <strong>/proc/meminfo</strong> para memoria.
+          </p>
+        </article>
+        <article class="info-box">
+          <h3>2. Aplica supuestos</h3>
+          <p>
+            Usa watts por vCPU, watts por GB de RAM, PUE del data center y factor
+            de emisión de la red eléctrica.
+          </p>
+        </article>
+        <article class="info-box">
+          <h3>3. Reporta periodos</h3>
+          <p>
+            Resume los datos guardados en SQLite para el último día, semana o mes.
+          </p>
+        </article>
+      </div>
+
+      <div class="formula-panel">
+        <h3>Cómo lo calcula</h3>
+        <div class="formula">Energy kWh =
+hours × ((vCPU × W_per_vCPU × CPU_usage)
++ (RAM_GB × W_per_GB_RAM)) / 1000 × PUE
+
+CO2e = Energy kWh × grid_emission_factor</div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Estimación transparente para infraestructura digital</span>
+      <span class="page-number">1 / 2</span>
+    </div>
+  </section>
+
+  <section class="page page-2">
+    <div class="top-band"></div>
+    <div class="accent-stripe"></div>
+    <div class="content">
+      <div class="compact-grid">
+        <div>
+          <div class="install-panel">
+            <h2>Instalación rápida</h2>
+            <div class="steps">
+              <div class="step">
+                <b>1</b>
+                <div>
+                  Clona el repositorio.
+                  <div class="code">git clone https://github.com/garcelomarcia/vps-energy-monitor.git
+cd vps-energy-monitor</div>
+                </div>
+              </div>
+              <div class="step">
+                <b>2</b>
+                <div>
+                  Ejecuta el instalador como root.
+                  <div class="code">sudo ./install.sh</div>
+                </div>
+              </div>
+              <div class="step">
+                <b>3</b>
+                <div>
+                  Ajusta factores del VPS y data center.
+                  <div class="code">sudo nano /etc/vps-energy.conf</div>
+                </div>
+              </div>
+              <div class="step">
+                <b>4</b>
+                <div>
+                  Consulta estado y reportes.
+                  <div class="code">vps-energy status
+vps-energy report --period day
+vps-energy report --period week</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="interpretation">
+            <h2>Cómo interpretar el resultado</h2>
+            <p>
+              El resultado no es una medición física del servidor completo. Es
+              una estimación atribuida al VPS con base en recursos virtuales,
+              utilización observada y factores configurados. Para reportes
+              formales, usa también información oficial del proveedor cloud.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <div class="config-panel">
+            <h2>Factores de configuración</h2>
+            <table class="config-table">
+              <thead>
+                <tr>
+                  <th>Campo</th>
+                  <th>Qué representa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>W_PER_VCPU</code></td>
+                  <td>Watts estimados por vCPU al 100% de uso.</td>
+                </tr>
+                <tr>
+                  <td><code>W_PER_GB_RAM</code></td>
+                  <td>Watts estimados por GB de RAM asignada o usada.</td>
+                </tr>
+                <tr>
+                  <td><code>PUE</code></td>
+                  <td>Overhead energético del data center: refrigeración, UPS e infraestructura.</td>
+                </tr>
+                <tr>
+                  <td><code>KGCO2E_PER_KWH</code></td>
+                  <td>Emisiones eléctricas de la región donde corre el VPS.</td>
+                </tr>
+                <tr>
+                  <td><code>RAM_MODE</code></td>
+                  <td><strong>allocated</strong> para RAM asignada; <strong>used</strong> para RAM usada.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="source-panel">
+            <h2>Fuentes recomendadas</h2>
+            <ul>
+              <li>Cloud Carbon Footprint: metodología cloud, energía y carbono.</li>
+              <li>Green Algorithms: CPU, memoria, PUE e intensidad de carbono.</li>
+              <li>Green Software Foundation: uso de CPU, energía y carbono.</li>
+              <li>Uptime Institute: referencias de PUE de industria.</li>
+              <li>EPA eGRID e IEA: factores de emisión eléctrica por región o país.</li>
+            </ul>
+          </div>
+
+          <div class="qr-panel">
+            <img src="assets/qr-repo.svg" alt="QR al repositorio de VPS Energy Monitor" />
+            <div>
+              <h2>Repositorio</h2>
+              <p>Escanea para ver el código, guía de instalación y documentación.</p>
+              <div class="url">github.com/garcelomarcia/vps-energy-monitor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>VPS Energy Monitor · MIT License</span>
+      <span class="page-number">2 / 2</span>
+    </div>
+  </section>
+</body>
+</html>

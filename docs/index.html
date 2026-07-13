@@ -265,6 +265,13 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
+      font-family: Aptos, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .step h3 {
+      font-family: "Aptos Display", Aptos, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      font-size: 1.12rem;
+      font-weight: 800;
     }
 
     .step-number {
@@ -285,11 +292,52 @@
       font-size: 0.9rem;
     }
 
+    .step pre,
+    .step code {
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
     .callout {
       padding: 18px;
       border-left: 5px solid var(--amber);
       background: #fff8ed;
       border-radius: 8px;
+    }
+
+    .download-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .download-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .button-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      color: #ffffff;
+      background: var(--green);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .button-link.secondary {
+      color: var(--green);
+      background: transparent;
     }
 
     footer {
@@ -329,6 +377,10 @@
       .factor-row {
         grid-template-columns: 1fr;
       }
+
+      .download-panel {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -338,8 +390,8 @@
       <p class="eyebrow">Open-source VPS sustainability tool</p>
       <h1>VPS Energy Monitor</h1>
       <p class="lead">
-        Estima el consumo energetico y las emisiones CO2e de un VPS Ubuntu con
-        metricas locales de CPU, RAM y una metodologia transparente.
+        Estima el consumo energético y las emisiones CO2e de un VPS Ubuntu con
+        métricas locales de CPU, RAM y una metodología transparente.
       </p>
     </div>
 
@@ -362,7 +414,7 @@ emissions:      0.013512 kgCO2e</code></pre>
 
   <main>
     <section>
-      <span class="tag">Que hace</span>
+      <span class="tag">Qué hace</span>
       <h2>Un recolector ligero para VPS Linux</h2>
       <div class="grid">
         <article class="card">
@@ -375,19 +427,19 @@ emissions:      0.013512 kgCO2e</code></pre>
         </article>
         <article class="card">
           <strong>Genera reportes</strong>
-          Entrega estimaciones por dia, semana o mes desde la terminal.
+          Entrega estimaciones por día, semana o mes desde la terminal.
         </article>
         <article class="card">
           <strong>Calcula CO2e</strong>
-          Convierte energia estimada con un factor electrico regional.
+          Convierte energía estimada con un factor eléctrico regional.
         </article>
       </div>
     </section>
 
     <section>
-      <span class="tag">Formula</span>
-      <h2>Modelo de calculo</h2>
-      <p>Para un VPS sin GPU, la estimacion usa potencia de CPU, RAM y PUE.</p>
+      <span class="tag">Fórmula</span>
+      <h2>Modelo de cálculo</h2>
+      <p>Para un VPS sin GPU, la estimación usa potencia de CPU, RAM y PUE.</p>
       <div class="formula">
         <pre><code>Energy kWh =
 hours x ((vCPU x W_per_vCPU x CPU_usage)
@@ -399,12 +451,12 @@ Energy kWh x grid_emission_factor</code></pre>
     </section>
 
     <section>
-      <span class="tag">Configuracion</span>
+      <span class="tag">Configuración</span>
       <h2>Valores que debes ajustar</h2>
       <p class="config-intro">
-        La precision depende menos del script y mas de los factores que declares.
+        La precisión depende menos del script y más de los factores que declares.
         Usa primero datos del proveedor del VPS o del data center. Si no existen,
-        usa fuentes publicas y deja documentado de donde salio cada supuesto.
+        usa fuentes públicas y deja documentado de dónde salió cada supuesto.
       </p>
       <div class="grid">
         <article class="card">
@@ -417,7 +469,7 @@ Energy kWh x grid_emission_factor</code></pre>
         </article>
         <article class="card">
           <strong>PUE</strong>
-          Multiplicador de energia del centro de datos: energia total / energia IT.
+          Multiplicador de energía del centro de datos: energía total / energía IT.
         </article>
         <article class="card">
           <strong>KGCO2E_PER_KWH</strong>
@@ -433,16 +485,16 @@ Energy kWh x grid_emission_factor</code></pre>
           </div>
           <div>
             <p>
-              Representa cuantos watts se asignan a una vCPU a carga completa.
-              Si conoces el procesador fisico, toma su TDP del fabricante y
-              dividelo entre el numero de nucleos. En VPS normalmente no se
-              publica el host exacto, asi que conviene usar un rango razonable y
+              Representa cuántos watts se asignan a una vCPU a carga completa.
+              Si conoces el procesador físico, toma su TDP del fabricante y
+              divídelo entre el número de núcleos. En VPS normalmente no se
+              publica el host exacto, así que conviene usar un rango razonable y
               explicar el supuesto.
             </p>
             <ul>
-              <li>Mas conservador: 10 a 20 W por vCPU.</li>
-              <li>Default practico: 15 W por vCPU.</li>
-              <li>Mejor dato: documentacion tecnica del CPU o del proveedor.</li>
+              <li>Más conservador: 10 a 20 W por vCPU.</li>
+              <li>Default práctico: 15 W por vCPU.</li>
+              <li>Mejor dato: documentación técnica del CPU o del proveedor.</li>
             </ul>
           </div>
         </article>
@@ -454,9 +506,9 @@ Energy kWh x grid_emission_factor</code></pre>
           </div>
           <div>
             <p>
-              La memoria consume energia aunque el workload no la este usando
+              La memoria consume energía aunque el workload no la esté usando
               intensamente. Por eso, para reportes prudentes, <code>RAM_MODE=allocated</code>
-              suele ser mas defendible que usar solo RAM usada.
+              suele ser más defendible que usar solo RAM usada.
             </p>
             <ul>
               <li>Green Algorithms usa una referencia cercana a 0.3725 W/GB.</li>
@@ -473,14 +525,14 @@ Energy kWh x grid_emission_factor</code></pre>
           </div>
           <div>
             <p>
-              PUE incluye refrigeracion, distribucion electrica, UPS, iluminacion
+              PUE incluye refrigeración, distribución eléctrica, UPS, iluminación
               y otros consumos de infraestructura. Un PUE de 1.2 significa que por
               cada 1 kWh usado por equipos IT, se agregan 0.2 kWh de overhead.
             </p>
             <ul>
-              <li>Mejor dato: PUE publicado por el proveedor o region del data center.</li>
+              <li>Mejor dato: PUE publicado por el proveedor o región del data center.</li>
               <li>Hiperscalers eficientes pueden estar cerca de 1.1 a 1.3.</li>
-              <li>Si no sabes el proveedor o instalacion, 1.5 a 1.6 es una referencia prudente de industria.</li>
+              <li>Si no sabes el proveedor o instalación, 1.5 a 1.6 es una referencia prudente de industria.</li>
             </ul>
           </div>
         </article>
@@ -492,14 +544,14 @@ Energy kWh x grid_emission_factor</code></pre>
           </div>
           <div>
             <p>
-              Es el factor mas sensible del calculo. Primero identifica la region
-              real del VPS, no la ubicacion del usuario. Despues busca el factor
-              electrico location-based de esa red o pais y conviertelo a kgCO2e/kWh.
+              Es el factor más sensible del cálculo. Primero identifica la región
+              real del VPS, no la ubicación del usuario. Después busca el factor
+              eléctrico location-based de esa red o país y conviértelo a kgCO2e/kWh.
             </p>
             <ul>
-              <li>Si la fuente esta en gCO2e/kWh, divide entre 1000.</li>
-              <li>Si la fuente esta en kgCO2e/kWh, usala directamente.</li>
-              <li>Si la fuente esta en tCO2e/MWh, numericamente equivale a kgCO2e/kWh.</li>
+              <li>Si la fuente está en gCO2e/kWh, divide entre 1000.</li>
+              <li>Si la fuente está en kgCO2e/kWh, úsala directamente.</li>
+              <li>Si la fuente está en tCO2e/MWh, numéricamente equivale a kgCO2e/kWh.</li>
             </ul>
           </div>
         </article>
@@ -512,29 +564,29 @@ Energy kWh x grid_emission_factor</code></pre>
           <div>
             <p>
               <code>allocated</code> usa toda la RAM asignada al VPS. <code>used</code>
-              usa solo la RAM observada en Linux. Para estimaciones publicas o
+              usa solo la RAM observada en Linux. Para estimaciones públicas o
               comparables, <code>allocated</code> evita subestimar memoria reservada;
               para seguimiento operativo interno, <code>used</code> puede mostrar
-              mejor la variacion del workload.
+              mejor la variación del workload.
             </p>
           </div>
         </article>
       </div>
 
       <div class="source-panel">
-        <h3>Fuentes utiles para elegir factores</h3>
+        <h3>Fuentes útiles para elegir factores</h3>
         <ul class="source-list">
           <li>
             <a href="https://www.cloudcarbonfootprint.org/docs/methodology/" target="_blank" rel="noreferrer">Cloud Carbon Footprint methodology</a>:
-            referencia abierta para estimar energia y CO2e en servicios cloud con uso, PUE y factores de red.
+            referencia abierta para estimar energía y CO2e en servicios cloud con uso, PUE y factores de red.
           </li>
           <li>
             <a href="https://calculator.green-algorithms.org/" target="_blank" rel="noreferrer">Green Algorithms</a>:
-            metodologia de computo que usa tiempo, nucleos, memoria, PUE e intensidad de carbono.
+            metodología de cómputo que usa tiempo, núcleos, memoria, PUE e intensidad de carbono.
           </li>
           <li>
             <a href="https://if.greensoftware.foundation/pipelines/cpu-to-carbon/" target="_blank" rel="noreferrer">Green Software Foundation Impact Framework</a>:
-            guia para transformar utilizacion de CPU en watts, energia y carbono.
+            guía para transformar utilización de CPU en watts, energía y carbono.
           </li>
           <li>
             <a href="https://datacenter.uptimeinstitute.com/rs/711-RIA-145/images/2025.Annual.Survey.Report.pdf?version=0" target="_blank" rel="noreferrer">Uptime Institute Global Data Center Survey 2025</a>:
@@ -542,19 +594,19 @@ Energy kWh x grid_emission_factor</code></pre>
           </li>
           <li>
             <a href="https://www.epa.gov/egrid" target="_blank" rel="noreferrer">EPA eGRID</a>:
-            factores electricos por subregion en Estados Unidos.
+            factores eléctricos por subregión en Estados Unidos.
           </li>
           <li>
             <a href="https://www.iea.org/data-and-statistics/data-product/emissions-factors-2025" target="_blank" rel="noreferrer">IEA Emissions Factors</a>:
-            factores de emisiones electricas por pais para comparaciones internacionales.
+            factores de emisiones eléctricas por país para comparaciones internacionales.
           </li>
         </ul>
       </div>
     </section>
 
     <section>
-      <span class="tag">Instalacion</span>
-      <h2>Uso rapido</h2>
+      <span class="tag">Instalación</span>
+      <h2>Uso rápido</h2>
       <div class="steps">
         <article class="step">
           <div class="step-number">1</div>
@@ -574,7 +626,7 @@ cd vps-energy-monitor</code></pre>
         <article class="step">
           <div class="step-number">3</div>
           <div>
-            <h3>Edita la configuracion</h3>
+            <h3>Edita la configuración</h3>
             <pre><code>sudo nano /etc/vps-energy.conf</code></pre>
           </div>
         </article>
@@ -592,17 +644,36 @@ vps-energy report --period month</code></pre>
     </section>
 
     <section>
-      <span class="tag">Limitacion</span>
-      <h2>Estimacion, no medidor fisico</h2>
+      <span class="tag">Material impreso</span>
+      <h2>Ficha técnica para stand</h2>
+      <div class="download-panel">
+        <div>
+          <h3>Documento de dos páginas</h3>
+          <p>
+            Versión diseñada para impresión en tamaño carta, con explicación de
+            qué mide la herramienta, cómo lo mide, cómo instalarla y qué factores
+            se deben configurar.
+          </p>
+        </div>
+        <div class="download-actions">
+          <a class="button-link" href="vps-energy-monitor-ficha-tecnica.pdf">Abrir PDF</a>
+          <a class="button-link secondary" href="ficha-tecnica.html">Ver HTML</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <span class="tag">Limitación</span>
+      <h2>Estimación, no medidor físico</h2>
       <div class="callout">
         <p>
           En un VPS, el hardware real se comparte con otros usuarios. Por eso el
-          resultado debe entenderse como una estimacion basada en recursos
+          resultado debe entenderse como una estimación basada en recursos
           virtuales y uso observado.
         </p>
         <p>
           Para reportes formales, usa datos oficiales del proveedor cloud cuando
-          esten disponibles.
+          estén disponibles.
         </p>
       </div>
     </section>
