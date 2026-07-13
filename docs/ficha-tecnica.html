@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ficha técnica - VPS Energy Monitor</title>
+  <title>Ficha Técnica - Monitor de Energía para VPS</title>
   <style>
     @page {
       size: Letter;
@@ -11,18 +11,17 @@
     }
 
     :root {
-      --ink: #12231c;
+      --ink: #274A46;
       --muted: #52635b;
-      --paper: #fbfcf7;
+      --paper: #F9F4ED;
       --panel: #ffffff;
-      --line: #d8e2d6;
-      --forest: #173b2b;
-      --green: #38a169;
-      --lime: #b9f26d;
-      --cyan: #8ee6ff;
-      --amber: #f4b84a;
-      --coral: #ef6f61;
-      --charcoal: #0d1713;
+      --line: #DDDDDB;
+      --forest: #274A46;
+      --cascade: #7BA09C;
+      --pale-lime: #EFF3CE;
+      --soft-cream: #F9F4ED;
+      --cool-gray: #DDDDDB;
+      --black: #000000;
     }
 
     * {
@@ -32,9 +31,9 @@
     html,
     body {
       margin: 0;
-      background: #d9ded6;
+      background: var(--cool-gray);
       color: var(--ink);
-      font-family: Aptos, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      font-family: "Chillax Variable", Chillax, "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
       line-height: 1.35;
     }
 
@@ -65,25 +64,17 @@
       inset: 0;
       pointer-events: none;
       background:
-        linear-gradient(90deg, rgba(56, 161, 105, 0.1), transparent 34%),
-        linear-gradient(180deg, transparent 0, transparent 92%, rgba(23, 59, 43, 0.08));
+        linear-gradient(90deg, rgba(123, 160, 156, 0.16), transparent 36%),
+        linear-gradient(180deg, transparent 0, transparent 92%, rgba(39, 74, 70, 0.08));
     }
 
     .top-band {
       position: absolute;
       inset: 0 0 auto 0;
-      height: 1.18in;
-      background:
-        linear-gradient(90deg, var(--forest), #1e6b48 52%, #174e61);
-    }
-
-    .accent-stripe {
-      position: absolute;
-      top: 1.18in;
-      left: 0;
-      right: 0;
-      height: 0.12in;
-      background: linear-gradient(90deg, var(--lime), var(--cyan), var(--amber), var(--coral));
+      height: 1.55in;
+      display: grid;
+      place-items: center;
+      background: var(--forest);
     }
 
     .content {
@@ -93,14 +84,22 @@
     }
 
     .cover .content {
-      padding-top: 0.44in;
+      padding-top: 1.78in;
+    }
+
+    .brand-title-block {
+      position: relative;
+      z-index: 2;
+      width: calc(100% - 1.08in);
+      text-align: center;
     }
 
     .kicker {
-      margin: 0 0 0.12in;
-      color: var(--lime);
+      margin: 0 0 0.1in;
+      color: var(--pale-lime);
+      font-family: Coolvetica, "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
       font-size: 10pt;
-      font-weight: 900;
+      font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -113,17 +112,19 @@
     }
 
     h1 {
-      max-width: 5.6in;
+      max-width: none;
       color: #ffffff;
-      font-size: 40pt;
-      line-height: 0.94;
+      font-family: "Chillax Variable", Chillax, "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      font-size: 34pt;
+      line-height: 0.98;
       letter-spacing: 0;
+      text-align: center;
     }
 
     .subtitle {
-      max-width: 5.7in;
-      margin-top: 0.28in;
-      color: #234637;
+      max-width: 6.1in;
+      margin-top: 0;
+      color: var(--forest);
       font-size: 13pt;
       font-weight: 650;
     }
@@ -140,12 +141,13 @@
       padding: 0.23in;
       border-radius: 0.12in;
       color: #f7fff9;
-      background: var(--charcoal);
+      background: var(--forest);
       box-shadow: 0 0.16in 0.32in rgba(18, 35, 28, 0.18);
     }
 
     .dark-panel h2 {
-      color: var(--cyan);
+      color: var(--pale-lime);
+      font-family: "Chillax Variable", Chillax, "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
       font-size: 18pt;
       line-height: 1.05;
     }
@@ -161,8 +163,8 @@
       padding: 0.16in;
       border: 1px solid rgba(142, 230, 255, 0.25);
       border-radius: 0.08in;
-      background: #07110d;
-      color: #dff6e7;
+      background: var(--black);
+      color: var(--pale-lime);
       font-family: "Cascadia Mono", Consolas, monospace;
       font-size: 8.6pt;
       line-height: 1.5;
@@ -193,6 +195,7 @@
       display: block;
       margin-top: 0.04in;
       color: var(--forest);
+      font-family: "Chillax Variable", Chillax, "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
       font-size: 23pt;
       font-weight: 900;
       line-height: 1;
@@ -215,7 +218,7 @@
       width: 0.28in;
       height: 0.28in;
       border-radius: 50%;
-      background: var(--green);
+      background: var(--forest);
       color: #ffffff;
       display: grid;
       place-items: center;
@@ -240,17 +243,17 @@
       min-height: 1.4in;
       padding: 0.16in;
       border: 1px solid var(--line);
-      border-top: 0.06in solid var(--green);
+      border-top: 0.06in solid var(--forest);
       border-radius: 0.1in;
       background: #ffffff;
     }
 
     .info-box:nth-child(2) {
-      border-top-color: var(--cyan);
+      border-top-color: var(--cascade);
     }
 
     .info-box:nth-child(3) {
-      border-top-color: var(--amber);
+      border-top-color: var(--pale-lime);
     }
 
     .info-box h3 {
@@ -269,8 +272,8 @@
       margin-top: 0.22in;
       padding: 0.2in;
       border-radius: 0.12in;
-      background: #eaf6ee;
-      border: 1px solid #cce4d1;
+      background: var(--pale-lime);
+      border: 1px solid #dfe6bb;
     }
 
     .formula-panel h3 {
@@ -282,8 +285,8 @@
       margin-top: 0.1in;
       padding: 0.14in;
       border-radius: 0.08in;
-      background: var(--charcoal);
-      color: #eaffef;
+      background: var(--black);
+      color: var(--pale-lime);
       font-family: "Cascadia Mono", Consolas, monospace;
       font-size: 9.2pt;
       line-height: 1.42;
@@ -316,9 +319,9 @@
       gap: 0.18in;
     }
 
-    .install-panel,
     .config-panel,
     .source-panel,
+    .measurement-panel,
     .qr-panel {
       padding: 0.18in;
       border: 1px solid var(--line);
@@ -327,53 +330,13 @@
       box-shadow: 0 0.08in 0.18in rgba(18, 35, 28, 0.07);
     }
 
-    .install-panel h2,
     .config-panel h2,
     .source-panel h2,
+    .measurement-panel h2,
     .qr-panel h2 {
       color: var(--forest);
       font-size: 15pt;
       line-height: 1.1;
-    }
-
-    .steps {
-      margin-top: 0.12in;
-      display: grid;
-      gap: 0.08in;
-    }
-
-    .step {
-      display: grid;
-      grid-template-columns: 0.27in 1fr;
-      gap: 0.08in;
-      align-items: start;
-      padding: 0.1in;
-      border-radius: 0.08in;
-      background: #f2f7f0;
-      font-size: 8.7pt;
-    }
-
-    .step b {
-      display: grid;
-      place-items: center;
-      width: 0.24in;
-      height: 0.24in;
-      border-radius: 50%;
-      background: var(--green);
-      color: white;
-      font-size: 8.4pt;
-    }
-
-    .code {
-      margin-top: 0.05in;
-      padding: 0.09in;
-      border-radius: 0.06in;
-      background: var(--charcoal);
-      color: #e8fff0;
-      font-family: "Cascadia Mono", Consolas, monospace;
-      font-size: 7.8pt;
-      line-height: 1.5;
-      white-space: pre-wrap;
     }
 
     .config-table {
@@ -407,19 +370,51 @@
       margin-top: 0.18in;
       padding: 0.18in;
       border-radius: 0.12in;
-      background: #fff7e7;
-      border: 1px solid #f0d39c;
+      background: var(--pale-lime);
+      border: 1px solid #dfe6bb;
     }
 
     .interpretation h2 {
-      color: #7c4d0c;
+      color: var(--forest);
       font-size: 15pt;
     }
 
     .interpretation p {
       margin-top: 0.09in;
-      color: #59452b;
+      color: var(--forest);
       font-size: 9.2pt;
+    }
+
+    .measurement-panel p {
+      margin-top: 0.09in;
+      color: var(--muted);
+      font-size: 9pt;
+    }
+
+    .measurement-list {
+      display: grid;
+      gap: 0.08in;
+      margin-top: 0.12in;
+    }
+
+    .measurement-item {
+      padding: 0.1in;
+      border-radius: 0.08in;
+      background: var(--soft-cream);
+      border: 1px solid var(--cool-gray);
+    }
+
+    .measurement-item strong {
+      display: block;
+      color: var(--forest);
+      font-size: 9.2pt;
+    }
+
+    .measurement-item span {
+      display: block;
+      margin-top: 0.03in;
+      color: var(--muted);
+      font-size: 8.2pt;
     }
 
     .source-panel {
@@ -443,7 +438,7 @@
       grid-template-columns: 1.35in 1fr;
       gap: 0.16in;
       align-items: center;
-      background: var(--charcoal);
+      background: var(--forest);
       color: #ecfff2;
       border: 0;
     }
@@ -457,18 +452,18 @@
     }
 
     .qr-panel h2 {
-      color: var(--cyan);
+      color: var(--pale-lime);
     }
 
     .qr-panel p {
       margin-top: 0.08in;
-      color: #cfe6d8;
+      color: #eff3ce;
       font-size: 8.8pt;
     }
 
     .url {
       margin-top: 0.08in;
-      color: var(--lime);
+      color: #ffffff;
       font-family: "Cascadia Mono", Consolas, monospace;
       font-size: 7.4pt;
       word-break: break-all;
@@ -477,11 +472,13 @@
 </head>
 <body>
   <section class="page cover">
-    <div class="top-band"></div>
-    <div class="accent-stripe"></div>
+    <div class="top-band">
+      <div class="brand-title-block">
+        <p class="kicker">Ficha Técnica</p>
+        <h1>Monitor de Energía para VPS</h1>
+      </div>
+    </div>
     <div class="content">
-      <p class="kicker">Ficha técnica para impresión</p>
-      <h1>VPS Energy Monitor</h1>
       <p class="subtitle">
         Herramienta open-source para estimar consumo energético y emisiones CO2e
         de un VPS Ubuntu usando métricas locales de CPU y RAM.
@@ -556,43 +553,28 @@ CO2e = Energy kWh × grid_emission_factor</div>
 
   <section class="page page-2">
     <div class="top-band"></div>
-    <div class="accent-stripe"></div>
     <div class="content">
       <div class="compact-grid">
         <div>
-          <div class="install-panel">
-            <h2>Instalación rápida</h2>
-            <div class="steps">
-              <div class="step">
-                <b>1</b>
-                <div>
-                  Clona el repositorio.
-                  <div class="code">git clone https://github.com/garcelomarcia/vps-energy-monitor.git
-cd vps-energy-monitor</div>
-                </div>
+          <div class="measurement-panel">
+            <h2>Qué observa el monitor</h2>
+            <p>
+              El recolector no intenta medir el servidor físico completo. Observa
+              señales disponibles dentro del VPS y las combina con factores
+              configurables para construir una estimación transparente.
+            </p>
+            <div class="measurement-list">
+              <div class="measurement-item">
+                <strong>CPU</strong>
+                <span>Uso promedio del procesador virtual y número de vCPU asignadas.</span>
               </div>
-              <div class="step">
-                <b>2</b>
-                <div>
-                  Ejecuta el instalador como root.
-                  <div class="code">sudo ./install.sh</div>
-                </div>
+              <div class="measurement-item">
+                <strong>Memoria</strong>
+                <span>RAM total asignada o RAM usada, según el modo configurado.</span>
               </div>
-              <div class="step">
-                <b>3</b>
-                <div>
-                  Ajusta factores del VPS y data center.
-                  <div class="code">sudo nano /etc/vps-energy.conf</div>
-                </div>
-              </div>
-              <div class="step">
-                <b>4</b>
-                <div>
-                  Consulta estado y reportes.
-                  <div class="code">vps-energy status
-vps-energy report --period day
-vps-energy report --period week</div>
-                </div>
+              <div class="measurement-item">
+                <strong>Tiempo</strong>
+                <span>Muestras guardadas en SQLite para reportes por día, semana o mes.</span>
               </div>
             </div>
           </div>
@@ -655,18 +637,18 @@ vps-energy report --period week</div>
           </div>
 
           <div class="qr-panel">
-            <img src="assets/qr-repo.svg" alt="QR al repositorio de VPS Energy Monitor" />
+            <img src="assets/qr-esg.svg" alt="QR al sitio de Sostenibilidad Digital de Interdato" />
             <div>
-              <h2>Repositorio</h2>
-              <p>Escanea para ver el código, guía de instalación y documentación.</p>
-              <div class="url">github.com/garcelomarcia/vps-energy-monitor</div>
+              <h2>Sitio ESG</h2>
+              <p>Escanea para consultar la página de sostenibilidad digital de Interdato.</p>
+              <div class="url">interdato-sostenibilidaddigital.github.io/ESG---Sostenibilidad-Digital/</div>
             </div>
           </div>
         </div>
       </div>
     </div>
     <div class="footer">
-      <span>VPS Energy Monitor · MIT License</span>
+      <span>Monitor de Energía para VPS · Interdato</span>
       <span class="page-number">2 / 2</span>
     </div>
   </section>
